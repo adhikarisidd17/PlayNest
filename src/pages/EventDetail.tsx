@@ -1,4 +1,4 @@
-import{Calendar,ChevronLeft,Clock,ExternalLink,Flag,Languages,MapPin,Share2,ShieldCheck,Trash2,Users}from'lucide-react';import{format}from'date-fns';import{Link,useNavigate,useParams}from'react-router-dom';import{useEffect,useState}from'react';import{examples}from'../data/demo';import{supabase}from'../lib/supabase';import{downloadIcs,googleCalendarUrl}from'../lib/calendar';import{useAuth}from'../App';import type{PlayEvent}from'../types';
+import{Calendar,ChevronLeft,Clock,ExternalLink,Flag,Languages,MapPin,Share2,ShieldCheck,Trash2,Users}from'lucide-react';import{format}from'date-fns';import{Link,useNavigate,useParams}from'react-router-dom';import{useEffect,useState}from'react';import{examples}from'../data/demo';import{supabase}from'../lib/supabase';import{downloadIcs,googleCalendarUrl}from'../lib/calendar';import{useAuth}from'../App';import{RequestPlace}from'../components/RequestPlace';import{OrganizerRequests}from'../components/OrganizerRequests';import type{PlayEvent}from'../types';
 type EventRow=PlayEvent&{venue:PlayEvent['venue']|null;locality:PlayEvent['locality']|null;organizer:{first_name:string;community_vouched_at:string|null}|null};
 export function EventDetail(){const{id}=useParams();const navigate=useNavigate();const{session}=useAuth();const[event,setEvent]=useState<PlayEvent|undefined>(()=>examples.find(x=>x.id===id));const[loading,setLoading]=useState(!event);const[deleting,setDeleting]=useState(false);const[error,setError]=useState('');useEffect(()=>{if(!id||event)return;let active=true;async function load(){const[eventResult,capacityResult]=await Promise.all([supabase.from('events').select('*,venue:venues(id,name,address_text,directions_url),locality:localities(id,name,city,country_code,timezone),organizer:profiles!events_organizer_id_fkey(first_name,community_vouched_at)').eq('id',id).single(),supabase.rpc('event_capacities')]);if(!active)return;if(eventResult.error)setError(eventResult.error.message);else{const row=eventResult.data as EventRow;const capacity=(capacityResult.data as {event_id:string;accepted_children:number}[]|null)?.find(c=>c.event_id===id);setEvent({...row,venue:row.venue??undefined,locality:row.locality??undefined,organizer_name:row.organizer?.first_name,community_vouched:Boolean(row.organizer?.community_vouched_at),accepted_children:capacity?.accepted_children??0})}setLoading(false)}void load();return()=>{active=false}},[id,event]);if(loading)return <div className="center">
 <div className="spinner"/>Loading event…</div>;if(!event)return <div className="empty">
@@ -81,6 +81,7 @@ async function remove(){if(!confirm(`Delete “${e.title}”? This permanently r
 </p>
 </div>
 </section>
+{isOwner&&!e.is_example&&<OrganizerRequests eventId={e.id}/>}
 <div className="event-controls">
 <button className="text-button danger">
 <Flag/> Report this event</button>{isOwner&&!e.is_example&&<button className="text-button danger" onClick={remove} disabled={deleting}>
@@ -89,7 +90,7 @@ async function remove(){if(!confirm(`Delete “${e.title}”? This permanently r
 <aside className="join-card">
 <ShieldCheck/>
 <h2>{isOwner?'You created this event':e.is_example?'Completed demonstration':isPast?'This event has ended':'Request a place'}</h2>
-<p>{isOwner?'You can manage or delete this event as its organizer.':e.is_example?'This demonstration is clearly labelled and cannot be joined.':isPast?'Past events remain visible as history but no longer accept requests.':'Sign in and choose the child profiles you want to share privately with the organizer.'}</p>{!isOwner&&<button className="button" disabled={e.is_example||isPast||remaining===0}>{e.is_example||isPast?'Joining unavailable':remaining===0?'Event full':'Request a place'}</button>}<small>Guardians must attend and remain responsible for their children.</small>
+<p>{isOwner?'You can manage or delete this event as its organizer.':e.is_example?'This demonstration is clearly labelled and cannot be joined.':isPast?'Past events remain visible as history but no longer accept requests.':'Sign in and choose the child profiles you want to share privately with the organizer.'}</p>{!isOwner&&<RequestPlace event={e} session={session} unavailable={e.is_example||isPast||remaining===0}/>}<small>Guardians must attend and remain responsible for their children.</small>
 </aside>
 </div>
 </article>}
