@@ -1,0 +1,1 @@
+import{describe,expect,it}from'vitest';describe('public venue safety',()=>{it('flags private address hints',()=>{const unsafe=/(door\s*code|apartment|floor\s*\d)/i;expect(unsafe.test('Floor 3, door code 1234')).toBe(true);expect(unsafe.test('Stadsbiblioteket, Sveavägen 73')).toBe(false)})});
