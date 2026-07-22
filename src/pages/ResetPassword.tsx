@@ -1,0 +1,13 @@
+import{useEffect,useState}from'react';
+import{Link,useNavigate}from'react-router-dom';
+import{z}from'zod';
+import{supabase}from'../lib/supabase';
+
+const schema=z.object({password:z.string().min(8,'Use at least 8 characters.'),confirmPassword:z.string()}).refine(value=>value.password===value.confirmPassword,{message:'Passwords do not match.',path:['confirmPassword']});
+
+export function ResetPassword(){
+  const navigate=useNavigate();const[ready,setReady]=useState(false);const[checking,setChecking]=useState(true);const[busy,setBusy]=useState(false);const[message,setMessage]=useState('');
+  useEffect(()=>{let active=true;let timeout:number|undefined;async function check(){const{data}=await supabase.auth.getSession();if(!active)return;if(data.session){setReady(true);setChecking(false);return}timeout=window.setTimeout(()=>{if(active)setChecking(false)},2500)}void check();const{data}=supabase.auth.onAuthStateChange((event,session)=>{if(!active)return;if(event==='PASSWORD_RECOVERY'||session){setReady(true);setChecking(false)}});return()=>{active=false;if(timeout)window.clearTimeout(timeout);data.subscription.unsubscribe()}},[]);
+  async function submit(event:React.FormEvent<HTMLFormElement>){event.preventDefault();const parsed=schema.safeParse(Object.fromEntries(new FormData(event.currentTarget)));if(!parsed.success){setMessage(parsed.error.issues[0]?.message??'Check your password.');return}setBusy(true);setMessage('');const{error}=await supabase.auth.updateUser({password:parsed.data.password});if(error){setMessage(error.message);setBusy(false);return}await supabase.auth.signOut();setMessage('Password updated. Redirecting to sign in…');window.setTimeout(()=>navigate('/auth',{replace:true}),700)}
+  return <main className="auth-page"><Link className="brand" to="/"><span className="brandmark">P</span>PlayNest</Link><section className="auth-card"><span className="eyebrow">Account recovery</span><h1>Choose a new password</h1>{checking?<div className="center compact"><div className="spinner"/>Checking your reset link…</div>:ready?<form method="post" onSubmit={submit}><label>New password<input name="password" type="password" autoComplete="new-password" minLength={8} required/></label><label>Confirm new password<input name="confirmPassword" type="password" autoComplete="new-password" minLength={8} required/></label><button type="submit" className="button" disabled={busy}>{busy?'Updating…':'Update password'}</button></form>:<div className="notice"><p>This reset link is invalid or has expired.</p><Link className="button secondary small" to="/auth">Request another link</Link></div>}{message&&<p className="notice" role="status">{message}</p>}</section></main>
+}

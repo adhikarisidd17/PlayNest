@@ -21,7 +21,7 @@ supabase link --project-ref YOUR_PROJECT_REF
 supabase db push
 ```
 
-In Supabase Authentication, enable email/password, require email confirmation, and add local/production URLs to the redirect allowlist. Run `supabase db reset` for a local stack with the locality seed. Never put the service-role or Resend key in a `VITE_` variable.
+In Supabase Authentication, enable email/password, require email confirmation, and add local/production URLs to the redirect allowlist. Include the exact password-recovery paths, for example `http://localhost:5173/reset-password` and `https://your-app.pages.dev/reset-password`. Set `VITE_PUBLIC_APP_URL` to the production origin so emails generated from any device use the canonical deployed URL. Run `supabase db reset` for a local stack with the locality seed. Never put the service-role or Resend key in a `VITE_` variable.
 
 Verification:
 
