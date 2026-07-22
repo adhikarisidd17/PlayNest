@@ -1,0 +1,110 @@
+/* Mobile usability fixes from the July 2026 device test. */
+.topbar .brand,
+.top-actions .text-button {
+  flex: none;
+}
+
+.top-actions {
+  min-width: 0;
+}
+
+.signed-in-name {
+  min-width: 0;
+  max-width: min(15rem, 32vw);
+}
+
+.signed-in-name > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tabs {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+  padding: 0 .75rem .5rem 0;
+}
+
+.tabs button {
+  flex: 0 0 auto;
+  min-height: 44px;
+}
+
+@media (max-width: 760px) {
+  .topbar {
+    padding-inline: .75rem;
+  }
+
+  .top-actions {
+    gap: .25rem;
+    flex: 1 1 auto;
+    justify-content: flex-end;
+  }
+
+  .signed-in-name {
+    max-width: min(8.5rem, 34vw);
+    padding-inline: .35rem;
+  }
+
+  .top-actions .text-button {
+    white-space: nowrap;
+    padding-inline: .35rem;
+  }
+
+  .landing-nav {
+    padding-inline: 1rem;
+  }
+
+  .landing-nav nav {
+    gap: .4rem;
+  }
+
+  .landing-nav nav > a:first-child {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: .5rem;
+  }
+
+  .landing-nav .button.small {
+    min-height: 44px;
+    padding-inline: .7rem;
+  }
+
+  .page > .form-page {
+    padding-bottom: calc(88px + env(safe-area-inset-bottom));
+  }
+
+  .form-page input,
+  .form-page select,
+  .form-page textarea,
+  .form-page button {
+    min-height: 44px;
+  }
+
+  .form-page input[type='checkbox'],
+  .form-page input[type='radio'] {
+    min-width: 44px;
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    margin: -.5rem .1rem -.5rem -.5rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .topbar .brand {
+    gap: .4rem;
+    font-size: 1.05rem;
+  }
+
+  .topbar .brandmark {
+    width: 34px;
+    height: 34px;
+  }
+}

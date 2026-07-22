@@ -1,3 +1,73 @@
-import{Bell,CalendarDays,Compass,LogOut,Plus,UserRound}from'lucide-react';import{useEffect,useState}from'react';import{Link,NavLink,Outlet,useNavigate}from'react-router-dom';import{supabase}from'../lib/supabase';import{useAuth}from'../App';
-const nav=[['/discover','Discover',Compass],['/create','Create',Plus],['/activities','My activities',CalendarDays],['/notifications','Notifications',Bell]] as const;
-export function Shell(){const navigate=useNavigate();const{session}=useAuth();const[name,setName]=useState('');const[unread,setUnread]=useState(false);useEffect(()=>{if(!session)return;let active=true;async function refresh(){const[{data:profile},{count}]=await Promise.all([supabase.from('profiles').select('first_name').eq('id',session!.user.id).maybeSingle(),supabase.from('notifications').select('id',{count:'exact',head:true}).is('read_at',null)]);if(active){setName(profile?.first_name??'');setUnread(Boolean(count))}}void refresh();const channel=supabase.channel(`shell-notifications-${session.user.id}`).on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications',filter:`user_id=eq.${session.user.id}`},()=>setUnread(true)).subscribe();const readHandler=()=>void refresh();window.addEventListener('playnest:notifications-read',readHandler);return()=>{active=false;window.removeEventListener('playnest:notifications-read',readHandler);void supabase.removeChannel(channel)}},[session]);async function logout(){await supabase.auth.signOut();navigate('/auth',{replace:true})}const links=nav.map(([to,label,Icon])=><NavLink key={to} to={to} className={({isActive})=>`${isActive?'active ':''}${to==='/notifications'&&unread?'has-unread':''}`}><span className="nav-icon"><Icon/>{to==='/notifications'&&unread&&<i aria-label="Unread notifications"/>}</span><span>{label}</span></NavLink>);return <><header className="topbar"><Link className="brand" to="/discover"><span className="brandmark">P</span>PlayNest</Link><div className="top-actions"><Link className="signed-in-name" to="/profile"><UserRound/> {name||'Your account'}</Link><button className="text-button" onClick={logout}><LogOut/> Log out</button></div></header><div className="app-layout"><aside className="side-nav" aria-label="Main navigation">{links}</aside><main className="page"><Outlet/></main></div><nav className="bottom-nav" aria-label="Main navigation">{links}</nav></>}
+import {Bell, CalendarDays, Compass, LogOut, Plus, UserRound} from 'lucide-react';
+import {useEffect, useState} from 'react';
+import {Link, NavLink, Outlet, useNavigate} from 'react-router-dom';
+import {supabase} from '../lib/supabase';
+import {useAuth} from '../App';
+
+const nav = [
+  ['/discover', 'Discover', Compass],
+  ['/create', 'Create', Plus],
+  ['/activities', 'My activities', CalendarDays],
+  ['/notifications', 'Notifications', Bell],
+] as const;
+
+export function Shell() {
+  const navigate = useNavigate();
+  const {session} = useAuth();
+  const [name, setName] = useState('');
+  const [unread, setUnread] = useState(false);
+
+  useEffect(() => {
+    if (!session) return;
+    let active = true;
+
+    async function refresh() {
+      const [{data: profile}, {count}] = await Promise.all([
+        supabase.from('profiles').select('first_name').eq('id', session!.user.id).maybeSingle(),
+        supabase.from('notifications').select('id', {count: 'exact', head: true}).is('read_at', null),
+      ]);
+      if (active) {
+        setName(profile?.first_name ?? '');
+        setUnread(Boolean(count));
+      }
+    }
+
+    void refresh();
+    const channel = supabase
+      .channel(`shell-notifications-${session.user.id}`)
+      .on('postgres_changes', {event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${session.user.id}`}, () => setUnread(true))
+      .subscribe();
+    const readHandler = () => void refresh();
+    window.addEventListener('playnest:notifications-read', readHandler);
+    return () => {
+      active = false;
+      window.removeEventListener('playnest:notifications-read', readHandler);
+      void supabase.removeChannel(channel);
+    };
+  }, [session]);
+
+  async function logout() {
+    await supabase.auth.signOut();
+    navigate('/auth', {replace: true});
+  }
+
+  const links = nav.map(([to, label, Icon]) => (
+    <NavLink key={to} to={to} className={({isActive}) => `${isActive ? 'active ' : ''}${to === '/notifications' && unread ? 'has-unread' : ''}`}>
+      <span className="nav-icon"><Icon/>{to === '/notifications' && unread && <i aria-label="Unread notifications"/>}</span>
+      <span>{label}</span>
+    </NavLink>
+  ));
+  const accountName = name || 'Your account';
+
+  return <>
+    <header className="topbar">
+      <Link className="brand" to="/discover"><span className="brandmark">P</span>PlayNest</Link>
+      <div className="top-actions">
+        <Link className="signed-in-name" to="/profile" title={accountName}><UserRound/><span>{accountName}</span></Link>
+        <button className="text-button" onClick={logout}><LogOut/> Log out</button>
+      </div>
+    </header>
+    <div className="app-layout"><aside className="side-nav" aria-label="Main navigation">{links}</aside><main className="page"><Outlet/></main></div>
+    <nav className="bottom-nav" aria-label="Main navigation">{links}</nav>
+  </>;
+}
