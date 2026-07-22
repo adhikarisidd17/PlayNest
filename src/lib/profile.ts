@@ -1,0 +1,2 @@
+import{supabase}from'./supabase';
+export async function isOnboardingComplete(userId:string){const{data,error}=await supabase.from('profiles').select('adult_confirmed,terms_accepted_at,privacy_accepted_at,safety_accepted_at,first_name,primary_locality_id').eq('id',userId).maybeSingle();if(error)return false;return Boolean(data?.adult_confirmed&&data.terms_accepted_at&&data.privacy_accepted_at&&data.safety_accepted_at&&data.first_name&&data.primary_locality_id)}
