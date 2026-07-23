@@ -24,7 +24,7 @@ export function Shell() {
     async function refresh() {
       const [{data: profile}, {count}] = await Promise.all([
         supabase.from('profiles').select('first_name').eq('id', session!.user.id).maybeSingle(),
-        supabase.from('notifications').select('id', {count: 'exact', head: true}).is('read_at', null),
+        supabase.from('notifications').select('id', {count: 'exact', head: true}).eq('user_id', session!.user.id).is('read_at', null),
       ]);
       if (active) {
         setName(profile?.first_name ?? '');
@@ -61,7 +61,7 @@ export function Shell() {
 
   return <>
     <header className="topbar">
-      <Link className="brand" to="/discover"><span className="brandmark">P</span>PlayNest</Link>
+      <Link className="brand" to={session ? '/discover' : '/'}><span className="brandmark">P</span>PlayNest</Link>
       <div className="top-actions">
         <Link className="signed-in-name" to="/profile" title={accountName}><UserRound/><span>{accountName}</span></Link>
         <button className="text-button" onClick={logout}><LogOut/> Log out</button>
