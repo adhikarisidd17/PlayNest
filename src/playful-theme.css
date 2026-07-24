@@ -322,6 +322,24 @@ footer small {
     margin-right: 58px;
   }
 
+  .landing-nav nav {
+    gap: .2rem;
+  }
+
+  .landing-nav nav > a {
+    white-space: nowrap;
+    font-size: .72rem;
+  }
+
+  .landing-nav nav > a:first-child {
+    padding-inline: .3rem;
+  }
+
+  .landing-nav .button.small {
+    padding-inline: .48rem;
+    font-size: .7rem;
+  }
+
   .language-switcher svg {
     display: none;
   }
@@ -342,5 +360,30 @@ footer small {
     width: 100%;
     margin-top: .35rem;
     box-shadow: 0 8px 22px rgba(53, 36, 111, .12);
+  }
+}
+
+@media (max-width: 360px) {
+  .landing-nav {
+    padding-inline: .55rem;
+  }
+
+  .landing-nav .brand {
+    gap: .3rem;
+    font-size: .92rem;
+  }
+
+  .landing-nav nav,
+  .top-actions {
+    margin-right: 48px;
+  }
+
+  .landing-nav nav > a {
+    font-size: .66rem;
+  }
+
+  .landing-nav .button.small {
+    padding-inline: .35rem;
+    font-size: .65rem;
   }
 }
